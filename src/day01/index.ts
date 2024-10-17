@@ -1,30 +1,28 @@
 import run from "aocrunner";
-import { Init } from "v8";
 
-const parseInput = (rawInput: string) => rawInput;
+function parseInput(input: string): string[] {
+  return input.split("\n");
+}
 
 const part1 = (rawInput: string) => {
-  const input = parseInput(rawInput);
-  let words = input.split("\n");
+  function findNums(word: string): string {
+    const firstDigit = word.match(/\d/);
+    const lastDigit = word.match(/\d(?!.*\d)/);
 
-  function findNums(word: String) {
-    let chars = word.split("");
-    let first = chars.find((char) => !Number.isNaN(parseInt(char))) || "0";
-    let last =
-      chars.reverse().find((char) => !Number.isNaN(parseInt(char))) || "0";
-    return first + last;
+    return (firstDigit?.[0] ?? "0") + (lastDigit?.[0] ?? "0");
   }
 
-  let numbers = words.map((word) => findNums(word));
-  let result = numbers.reduce((partialSum, a) => partialSum + parseInt(a), 0);
+  const input = parseInput(rawInput);
+  const numbers = input.map((word) => findNums(word));
+  const result = numbers.reduce((sum, num) => sum + parseInt(num, 10), 0);
+
   return result;
 };
 
 const part2 = (rawInput: string) => {
-  let input = parseInput(rawInput);
+  type DigitMap = { [key: string]: string };
 
-  const regex = /(?=(one|two|three|four|five|six|seven|eight|nine|\d))/g;
-  const digitMap: { [char: string]: string } = {
+  const digitMap: DigitMap = {
     one: "1",
     two: "2",
     six: "6",
@@ -36,26 +34,28 @@ const part2 = (rawInput: string) => {
     eight: "8",
   };
 
-  let words = input.split("\n");
+  const regex = /(?=(one|two|three|four|five|six|seven|eight|nine|\d))/g;
 
-  function findNums(word: String) {
-    const array = Array.from(word.matchAll(regex), (x) => x[1]);
+  function findNums(word: string): string {
+    const matches = Array.from(word.matchAll(regex), (match) => match[1]);
 
-    let normalizedNums = [array.at(0), array.at(-1)].map((num) => {
-      if (Number.isNaN(parseInt(num!))) {
-        return digitMap[num!];
-      } else {
-        return num;
-      }
-    });
+    const normalizedNums = matches
+      .slice(0, 1)
+      .concat(matches.slice(-1))
+      .map((num) => {
+        return digitMap[num] ?? num;
+      });
 
-    let result = (normalizedNums[0] || "") + (normalizedNums[1] || "");
-    return result;
+    return (normalizedNums[0] || "") + (normalizedNums[1] || "");
   }
 
-  let numbers = words.map((word) => findNums(word));
+  const input = parseInput(rawInput);
+  const numbers = input.map(findNums);
+  const result = numbers.reduce(
+    (sum, current) => sum + parseInt(current, 10),
+    0,
+  );
 
-  let result = numbers.reduce((partialSum, a) => partialSum + parseInt(a), 0);
   return result;
 };
 
